@@ -244,7 +244,7 @@ export default function Home() {
           </div>
           {/* Right: City Dropdown */}
           <div className="flex-1 flex items-center justify-center md:justify-end w-full">
-            <div className="bg-gray-300 bg-opacity-90 rounded-xl p-8 w-full max-w-md min-h-[350px] flex flex-col justify-center items-center">
+            <div className="bg-gray-300 bg-opacity-90 rounded-xl p-8 w-full max-w-lg min-h-[350px] flex flex-col justify-center items-center">
               <label className="text-3xl font-extrabold mb-6 text-gray-800" htmlFor="city-select">
                 Choose a city to investigate:
               </label>
