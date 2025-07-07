@@ -59,6 +59,7 @@ function AirQualityGrid() {
   const rows = 7;
   const totalBoxes = 45; // You can adjust this number as needed
   const [grid, setGrid] = useState<(string | null)[][]>([]);
+  const [popup, setPopup] = useState<{show: boolean, x: number, y: number, text: string}>({show: false, x: 0, y: 0, text: ''});
 
   useEffect(() => {
     // Helper to get neighbors
@@ -107,12 +108,24 @@ function AirQualityGrid() {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center justify-center p-4">
+    <div className="flex flex-col gap-2 items-center justify-center p-4 relative">
       {grid.map((row, rowIdx) => (
         <div key={rowIdx} className="flex gap-2">
           {row.map((imgSrc, colIdx) => (
             imgSrc ? (
-              <div key={colIdx} className="w-20 h-20 rounded-lg shadow-md overflow-hidden relative">
+              <div 
+                key={colIdx} 
+                className="w-20 h-20 rounded-lg shadow-md overflow-hidden relative cursor-pointer hover:scale-105 transition-transform"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setPopup({
+                    show: true,
+                    x: rect.left + rect.width / 2,
+                    y: rect.top,
+                    text: `Air Quality Data for Grid ${rowIdx}-${colIdx}: PM2.5: 45 µg/m³, AQI: Moderate`
+                  });
+                }}
+              >
                 <Image src={imgSrc} alt="Grid box" fill className="object-cover" />
               </div>
             ) : (
@@ -121,6 +134,24 @@ function AirQualityGrid() {
           ))}
         </div>
       ))}
+      {popup.show && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setPopup({...popup, show: false})}
+          />
+          <div 
+            className="fixed z-50 bg-white border-2 border-black rounded-lg p-3 shadow-lg max-w-xs"
+            style={{
+              left: popup.x - 150,
+              top: popup.y - 80,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <p className="text-sm font-semibold text-black">{popup.text}</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
