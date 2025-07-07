@@ -2,15 +2,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const southAsianCities = [
-  "Delhi",
-  "Mumbai",
-  "Agartala",
-  "Ha Noi",
-  "Hong Kong",
-  "Republic Of Korea",
-];
-
 // Helper for random color
 const gridColors = ["bg-red-400", "bg-orange-400", "bg-green-400"];
 function getRandomColor() {
@@ -151,6 +142,19 @@ export default function Home() {
   const [selectedCity, setSelectedCity] = useState("");
   const [pollutantData, setPollutantData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+
+  // Fetch available cities on mount
+  useEffect(() => {
+    async function fetchCities() {
+      const res = await fetch("/api/openaq-cities");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableCities(data.cities);
+      }
+    }
+    fetchCities();
+  }, []);
 
   useEffect(() => {
     if (!selectedCity) return;
@@ -219,7 +223,7 @@ export default function Home() {
                 onChange={e => setSelectedCity(e.target.value)}
               >
                 <option value="" disabled>Select a city</option>
-                {southAsianCities.map(city => (
+                {availableCities.map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
               </select>
