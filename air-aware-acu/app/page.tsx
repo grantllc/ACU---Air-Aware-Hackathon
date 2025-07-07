@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 // Helper for random color
@@ -174,6 +174,7 @@ export default function Home() {
   const [pollutantData, setPollutantData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const screen2Ref = useRef<HTMLDivElement>(null);
 
   // Fetch available cities on mount
   useEffect(() => {
@@ -242,8 +243,8 @@ export default function Home() {
             )}
           </div>
           {/* Right: City Dropdown */}
-          <div className="flex-1 flex items-start justify-center md:justify-end w-full">
-            <div className="bg-gray-300 bg-opacity-90 rounded-xl p-8 w-full max-w-md min-h-[350px] flex flex-col">
+          <div className="flex-1 flex items-center justify-center md:justify-end w-full">
+            <div className="bg-gray-300 bg-opacity-90 rounded-xl p-8 w-full max-w-md min-h-[350px] flex flex-col justify-center items-center">
               <label className="text-3xl font-extrabold mb-6 text-gray-800" htmlFor="city-select">
                 Choose a city to investigate:
               </label>
@@ -258,12 +259,25 @@ export default function Home() {
                   <option key={city} value={city}>{city}</option>
                 ))}
               </select>
+              {selectedCity && (
+                <button
+                  className="mt-8 px-8 py-3 rounded-full bg-gradient-to-r from-green-400 to-green-700 text-white text-2xl font-bold shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+                  onClick={() => {
+                    if (screen2Ref.current) {
+                      screen2Ref.current.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <svg className="w-7 h-7 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 3l14 9-14 9V3z" /></svg>
+                  Play
+                </button>
+              )}
             </div>
           </div>
         </div>
       </section>
       {/* Screen 2 */}
-      <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-900 p-0">
+      <section ref={screen2Ref} className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-900 p-0">
         <div className="flex flex-row w-full h-screen max-h-screen rounded-none border-0 overflow-hidden">
           {/* Left: Grid */}
           <div className="flex-1 flex items-center justify-center h-full">
@@ -273,10 +287,22 @@ export default function Home() {
           <div className="w-[400px] bg-gradient-to-b from-yellow-200 to-yellow-400 border-l-4 border-black p-8 flex flex-col justify-between h-full">
             <div>
               <div className="text-4xl font-extrabold mb-4 drop-shadow text-black fredoka">Air Quality</div>
-              <LineGraph label="Area CO (ppb)" />
-              <LineGraph label="Area NO2 (ppb)" />
-              <LineGraph label="Area SO2 (ppb)" />
-              <LineGraph label="Area PM2.5 (ppb)" />
+              <div className="grid grid-cols-1 gap-4">
+                {[
+                  { key: "co", label: "CO (ppb)" },
+                  { key: "no2", label: "NO₂ (ppb)" },
+                  { key: "so2", label: "SO₂ (ppb)" },
+                  { key: "pm25", label: "PM2.5 (µg/m³)" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="flex flex-col items-center bg-white rounded-xl p-3 border border-black/20">
+                    <div className="text-lg font-bold mb-1 text-black fredoka">{label}</div>
+                    <MiniLineGraph values={pollutantData?.[key]?.values} color={pollutantColors[label.split(" ")[0]] || "#888"} />
+                    <div className="text-2xl font-extrabold mt-2 text-black">
+                      {pollutantData?.[key]?.values?.length > 0 ? pollutantData[key].values[pollutantData[key].values.length - 1] : "-"}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="mt-4 bg-green-300 rounded-xl p-4 flex flex-col items-start border-2 border-black">
               <div className="text-2xl font-bold mb-2 fredoka">Tools</div>
