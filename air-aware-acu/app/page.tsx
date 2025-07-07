@@ -5,14 +5,10 @@ import Image from "next/image";
 const southAsianCities = [
   "Delhi",
   "Mumbai",
-  "Dhaka",
-  "Karachi",
-  "Colombo",
-  "Kathmandu",
-  "Islamabad",
-  "Chittagong",
-  "Bangalore",
-  "Hyderabad",
+  "Agartala",
+  "Ha Noi",
+  "Hong Kong",
+  "Republic Of Korea",
 ];
 
 // Helper for random color
@@ -28,6 +24,42 @@ const gridImages = [
 ];
 function getRandomImage() {
   return gridImages[Math.floor(Math.random() * gridImages.length)];
+}
+
+// Helper for pollutant colors
+const pollutantColors: Record<string, string> = {
+  CO: "#f87171", // red-400
+  NO2: "#fbbf24", // yellow-400
+  SO2: "#60a5fa", // blue-400
+  "PM2.5": "#34d399", // green-400
+};
+
+// Fetch OpenAQ data for a city and pollutants
+async function fetchPollutantData(city: string) {
+  const res = await fetch(`/api/openaq?city=${encodeURIComponent(city)}`);
+  if (!res.ok) throw new Error("Failed to fetch");
+  return await res.json();
+}
+
+// Simple SVG line graph
+function MiniLineGraph({ values, color }: { values: number[]; color: string }) {
+  if (!values || values.length === 0) return <svg width={120} height={40} />;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const norm = (v: number) =>
+    30 - ((v - min) / (max - min || 1)) * 30 + 5; // y position
+  const points = values.map((v, i) => `${10 * i},${norm(v)}`).join(" ");
+  return (
+    <svg width={120} height={40}>
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth={3}
+        points={points}
+      />
+      <circle cx={110} cy={norm(values[values.length - 1])} r={4} fill={color} />
+    </svg>
+  );
 }
 
 // Grid component
@@ -117,6 +149,17 @@ function LineGraph({ label }: { label: string }) {
 
 export default function Home() {
   const [selectedCity, setSelectedCity] = useState("");
+  const [pollutantData, setPollutantData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedCity) return;
+    setLoading(true);
+    setPollutantData(null);
+    fetchPollutantData(selectedCity)
+      .then(setPollutantData)
+      .finally(() => setLoading(false));
+  }, [selectedCity]);
 
   return (
     <div className="scroll-smooth">
@@ -137,6 +180,31 @@ export default function Home() {
             <p className="text-2xl md:text-3xl font-bold text-center">
               Air pollution is a growing problem around the world. Learn about what <span className="uppercase">you</span> can do to help!
             </p>
+            {/* Pollutant Data Card */}
+            {selectedCity && (
+              <div className="mt-8 w-full max-w-lg bg-white/80 rounded-2xl shadow-xl p-6 border-2 border-black">
+                <div className="text-2xl font-bold text-black mb-2 fredoka">{selectedCity} Air Quality</div>
+                {loading && <div className="text-black">Loading...</div>}
+                {pollutantData && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { key: "co", label: "CO (ppb)" },
+                      { key: "no2", label: "NO₂ (ppb)" },
+                      { key: "so2", label: "SO₂ (ppb)" },
+                      { key: "pm25", label: "PM2.5 (µg/m³)" },
+                    ].map(({ key, label }) => (
+                      <div key={key} className="flex flex-col items-center bg-white rounded-xl p-3 border border-black/20">
+                        <div className="text-lg font-bold mb-1 text-black fredoka">{label}</div>
+                        <MiniLineGraph values={pollutantData[key]?.values} color={pollutantColors[label.split(" ")[0]] || "#888"} />
+                        <div className="text-2xl font-extrabold mt-2 text-black">
+                          {pollutantData[key]?.values.length > 0 ? pollutantData[key].values[pollutantData[key].values.length - 1] : "-"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           {/* Right: City Dropdown */}
           <div className="flex-1 flex items-start justify-center md:justify-end w-full">
