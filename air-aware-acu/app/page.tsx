@@ -89,11 +89,11 @@ function AirQualityGrid() {
         <div key={rowIdx} className="flex gap-2">
           {row.map((imgSrc, colIdx) => (
             imgSrc ? (
-              <div key={colIdx} className="w-14 h-14 rounded-lg shadow-md overflow-hidden relative">
+              <div key={colIdx} className="w-20 h-20 rounded-lg shadow-md overflow-hidden relative">
                 <Image src={imgSrc} alt="Grid box" fill className="object-cover" />
               </div>
             ) : (
-              <div key={colIdx} className="w-14 h-14" />
+              <div key={colIdx} className="w-20 h-20" />
             )
           ))}
         </div>
@@ -160,14 +160,14 @@ export default function Home() {
         </div>
       </section>
       {/* Screen 2 */}
-      <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-900 p-4">
-        <div className="flex flex-row w-full h-[90vh] max-w-7xl rounded-2xl border-4 border-black overflow-hidden shadow-2xl">
+      <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-900 p-0">
+        <div className="flex flex-row w-full h-screen max-h-screen rounded-none border-0 overflow-hidden">
           {/* Left: Grid */}
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center h-full">
             <AirQualityGrid />
           </div>
           {/* Right: Air Quality Panel */}
-          <div className="w-[350px] bg-gradient-to-b from-yellow-200 to-yellow-400 border-l-4 border-black p-6 flex flex-col justify-between">
+          <div className="w-[400px] bg-gradient-to-b from-yellow-200 to-yellow-400 border-l-4 border-black p-8 flex flex-col justify-between h-full">
             <div>
               <div className="text-4xl font-extrabold mb-4 drop-shadow text-black fredoka">Air Quality</div>
               <LineGraph label="Area CO (ppb)" />
