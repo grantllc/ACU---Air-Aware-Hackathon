@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 const southAsianCities = [
@@ -32,20 +32,70 @@ function getRandomImage() {
 
 // Grid component
 function AirQualityGrid() {
-  // Example: 6 rows, variable columns per row
-  const gridPattern = [8, 7, 6, 5, 4, 3];
+  const cols = 9;
+  const rows = 7;
+  const totalBoxes = 45; // You can adjust this number as needed
+  const [grid, setGrid] = useState<(string | null)[][]>([]);
+
+  useEffect(() => {
+    // Helper to get neighbors
+    function getNeighbors([r, c]: [number, number]) {
+      return [
+        [r - 1, c],
+        [r + 1, c],
+        [r, c - 1],
+        [r, c + 1],
+      ].filter(
+        ([nr, nc]) => nr >= 0 && nr < rows && nc >= 0 && nc < cols
+      );
+    }
+
+    // Start with empty grid
+    const newGrid: (string | null)[][] = Array.from({ length: rows }, () => Array(cols).fill(null));
+    // Place the first box randomly
+    const startRow = Math.floor(Math.random() * rows);
+    const startCol = Math.floor(Math.random() * cols);
+    newGrid[startRow][startCol] = getRandomImage();
+    let placed = 1;
+    let filledCells: [number, number][] = [[startRow, startCol]];
+
+    while (placed < totalBoxes) {
+      // Find all empty neighbors of filled cells
+      const candidates: [number, number][] = [];
+      for (const [r, c] of filledCells) {
+        for (const [nr, nc] of getNeighbors([r, c])) {
+          if (newGrid[nr][nc] === null && !candidates.some(([cr, cc]) => cr === nr && cc === nc)) {
+            candidates.push([nr, nc]);
+          }
+        }
+      }
+      if (candidates.length === 0) break; // No more places to expand
+      // Pick a random candidate
+      const [cr, cc] = candidates[Math.floor(Math.random() * candidates.length)];
+      newGrid[cr][cc] = getRandomImage();
+      filledCells.push([cr, cc]);
+      placed++;
+    }
+    setGrid(newGrid);
+  }, []);
+
+  if (grid.length === 0) {
+    return <div style={{ minHeight: 400 }} />;
+  }
+
   return (
     <div className="flex flex-col gap-2 items-center justify-center p-4">
-      {gridPattern.map((cols, rowIdx) => (
+      {grid.map((row, rowIdx) => (
         <div key={rowIdx} className="flex gap-2">
-          {Array.from({ length: cols }).map((_, colIdx) => {
-            const imgSrc = getRandomImage();
-            return (
+          {row.map((imgSrc, colIdx) => (
+            imgSrc ? (
               <div key={colIdx} className="w-14 h-14 rounded-lg shadow-md overflow-hidden relative">
                 <Image src={imgSrc} alt="Grid box" fill className="object-cover" />
               </div>
-            );
-          })}
+            ) : (
+              <div key={colIdx} className="w-14 h-14" />
+            )
+          ))}
         </div>
       ))}
     </div>
