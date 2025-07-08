@@ -585,6 +585,43 @@ export default function Home() {
   const [toolImprovementProgress, setToolImprovementProgress] = useState<{[key: string]: number}>({});
   const [pollutionBaseline, setPollutionBaseline] = useState<{[key: string]: {co: number, no2: number, so2: number, pm25: number}}>({});
   const [totalImprovement, setTotalImprovement] = useState(0);
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'system', content: 'You are an air pollution expert. Only answer air-pollution related questions using the OpenAQ dataset. If a question is not about air pollution, politely refuse.' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatBoxRef = useRef<HTMLDivElement>(null);
+
+  // Function to send message to Grok AI
+  async function sendChatMessage(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    const input = chatInput.trim();
+    if (!input) return;
+    setChatLoading(true);
+    setChatMessages(prev => [...prev, { role: 'user', content: input }]);
+    setChatInput('');
+    try {
+      const res = await fetch('/api/grok-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: 'You are an air pollution expert. Only answer air-pollution related questions using the OpenAQ dataset. If a question is not about air pollution, politely refuse.' },
+            ...chatMessages.filter(m => m.role !== 'system'),
+            { role: 'user', content: input }
+          ]
+        })
+      });
+      const data = await res.json();
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response || 'No response.' }]);
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error contacting the AI.' }]);
+    }
+    setChatLoading(false);
+    setTimeout(() => {
+      if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }, 100);
+  }
 
   // Timer countdown effect
   useEffect(() => {
@@ -978,12 +1015,33 @@ export default function Home() {
               {/* Chatbot Box */}
               <div className="w-full mt-8 bg-blue-400/90 rounded-2xl shadow-lg p-4 flex flex-col items-start border-2 border-blue-700">
                 <div className="text-white font-bold text-lg mb-2">Any Questions?<br />Ask our AI chatbot.</div>
-                <input
-                  type="text"
-                  className="w-full rounded-lg p-3 text-lg text-gray-800 bg-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                  placeholder="Type your question here..."
-                  disabled
-                />
+                <div ref={chatBoxRef} className="w-full h-48 bg-white rounded-lg p-3 mb-3 overflow-y-auto flex flex-col gap-2">
+                  {chatMessages.filter(m => m.role !== 'system').map((msg, i) => (
+                    <div key={i} className={msg.role === 'user' ? 'text-right' : 'text-left'}>
+                      <span className={msg.role === 'user' ? 'bg-blue-200 text-blue-900 px-3 py-2 rounded-xl inline-block' : 'bg-gray-200 text-gray-800 px-3 py-2 rounded-xl inline-block'}>
+                        {msg.content}
+                      </span>
+                    </div>
+                  ))}
+                  {chatLoading && <div className="text-gray-500">AI is typing...</div>}
+                </div>
+                <form onSubmit={sendChatMessage} className="w-full flex gap-2">
+                  <input
+                    type="text"
+                    className="flex-1 rounded-lg p-3 text-lg text-gray-800 bg-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="Type your question here..."
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    disabled={chatLoading}
+                  />
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-lg bg-blue-700 text-white font-bold hover:bg-blue-800 disabled:opacity-50"
+                    disabled={chatLoading || !chatInput.trim()}
+                  >
+                    Send
+                  </button>
+                </form>
               </div>
             </div>
           </div>
