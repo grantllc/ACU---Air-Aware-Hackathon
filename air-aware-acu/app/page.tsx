@@ -792,8 +792,8 @@ export default function Home() {
         </div>
       </section>
       {/* Screen 2 */}
-      <section ref={screen2Ref} className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-900 p-0">
-        <div className="flex flex-row w-full h-screen max-h-screen rounded-none border-0 overflow-hidden relative">
+      <section ref={screen2Ref} className="min-h-[110vh] flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-900 p-0">
+        <div className="flex flex-row w-full rounded-none border-0 overflow-hidden relative" style={{ minHeight: '90vh' }}>
           {/* Timer Badge */}
           <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20">
             <div className="bg-blue-800 text-white px-8 py-3 rounded-2xl shadow-lg text-2xl font-extrabold border-4 border-blue-300 fredoka flex items-center gap-3">
@@ -829,7 +829,7 @@ export default function Home() {
             />
           </div>
           {/* Right: Air Quality Panel */}
-          <div className="w-[400px] bg-gradient-to-b from-yellow-200 to-yellow-400 border-l-4 border-black p-8 flex flex-col justify-between h-full">
+          <div className="w-[400px] bg-gradient-to-b from-yellow-200 to-yellow-400 border-l-4 border-black p-8 flex flex-col h-full justify-between">
             <div>
               <div className="text-4xl font-extrabold mb-4 drop-shadow text-black fredoka">Air Quality</div>
               <div className="grid grid-cols-1 gap-4">
@@ -852,7 +852,6 @@ export default function Home() {
             <div className="mt-4 bg-green-300 rounded-xl p-4 flex flex-col items-start border-2 border-black">
               <div className="text-2xl font-bold mb-2 fredoka">Tools</div>
               <div className="text-sm text-gray-700 mb-3">Press X to deselect tool</div>
-              
               <div className="flex gap-3">
                 <button 
                   onClick={() => {
@@ -905,8 +904,90 @@ export default function Home() {
         </div>
       </section>
       {/* Screen 3 */}
-      <section ref={screen3Ref} className="min-h-screen flex items-center justify-center bg-black text-white">
-        <h1 className="text-5xl font-bold">Screen 3 (Black)</h1>
+      <section
+        ref={screen3Ref}
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      >
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-fixed bg-center bg-cover z-0"
+          style={{ backgroundImage: 'url(/images/AirPoln.png)', filter: 'brightness(0.7) sepia(0.4)' }}
+        />
+        {/* Brownish overlay */}
+        <div className="absolute inset-0 bg-[#b89c7a]/70 z-10" />
+        {/* Main content */}
+        <div className="relative z-20 flex flex-col w-full h-full items-center justify-start p-8 gap-8">
+          {/* Header */}
+          <h1 className="text-6xl md:text-7xl font-extrabold text-white text-center mt-8 mb-2 fredoka tracking-wide">LEARN MORE</h1>
+          {/* Description and content row */}
+          <div className="flex flex-row w-full max-w-6xl gap-12 mt-2">
+            {/* Left: Description and Buttons */}
+            <div className="flex flex-col min-w-[260px] max-w-[320px] relative">
+              <p className="text-lg font-bold text-white mb-8 text-left leading-snug">
+                In the game, you implemented the following techniques. Learn more about how they can improve air quality and what you can do!
+              </p>
+              <div className="flex flex-col gap-6">
+                {(() => {
+                  const techniques = [
+                    'Public transport',
+                    'Clean energy',
+                    'Green spaces',
+                    'Recycling',
+                  ];
+                  const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null);
+                  // Expose state to the parent scope
+                  (globalThis as any).selectedTechnique = selectedTechnique;
+                  (globalThis as any).setSelectedTechnique = setSelectedTechnique;
+                  return techniques.map((label, idx) => (
+                    <div key={label} className="relative flex items-center">
+                      <button
+                        onClick={() => setSelectedTechnique(selectedTechnique === label ? null : label)}
+                        className={`flex items-center justify-between bg-gray-200/90 hover:bg-gray-300 text-gray-900 font-semibold text-lg px-6 py-3 rounded-xl shadow transition group min-w-[200px] ${selectedTechnique === label ? 'ring-2 ring-blue-500' : ''}`}
+                      >
+                        <span>{label}</span>
+                        <span className="ml-4">
+                          <svg className="w-7 h-7 text-gray-700 group-hover:text-gray-900" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                        </span>
+                      </button>
+                      {/* Info section appears to the right of the clicked button */}
+                      {selectedTechnique === label && (
+                        <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-white/95 border border-gray-300 rounded-xl shadow-lg p-6 min-w-[440px] max-w-2xl z-30">
+                          <div className="text-gray-900 text-xl font-bold mb-3">{label}</div>
+                          <div className="text-gray-700 text-lg">
+                            {label === 'Public transport'
+                              ? 'One of the biggest contributors to air pollution in cities is the use of private vehicles (cars) for transportation. By using more public transport, YOU can minimise carbon emissions from private vehicles, and contribute to healthier air quality.'
+                              : label === 'Clean energy'
+                                ? 'From previous data, cities which rely the most on renewable and clean energy have the cleanest air. Individuals can rely less on fossil fuels and gas and instead power their homes with solar and wind energy to make a real impact on air quality.'
+                                : label === 'Green spaces'
+                                  ? 'Green spaces not only create more pleasant environments for residents to enjoy, but the plants and greenery also clean up the air. Individuals can lobby for the construction of green spaces in their area. '
+                                  : 'Recycling is a great way to reduce the amount of waste that ends up in landfills. By recycling, you can reduce the amount of waste that ends up in landfills, and contribute to healthier air quality.'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+            {/* Right: Info Box */}
+            <div className="flex-1 flex flex-col items-center">
+              <div className="w-full h-[320px] md:h-[340px] bg-gray-200/80 rounded-2xl shadow-xl border-2 border-white flex items-center justify-center">
+                {/* Placeholder for info content */}
+                <span className="text-gray-400 text-2xl font-bold">Select a technique to learn more!</span>
+              </div>
+              {/* Chatbot Box */}
+              <div className="w-full mt-8 bg-blue-400/90 rounded-2xl shadow-lg p-4 flex flex-col items-start border-2 border-blue-700">
+                <div className="text-white font-bold text-lg mb-2">Any Questions?<br />Ask our AI chatbot.</div>
+                <input
+                  type="text"
+                  className="w-full rounded-lg p-3 text-lg text-gray-800 bg-white border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  placeholder="Type your question here..."
+                  disabled
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );
